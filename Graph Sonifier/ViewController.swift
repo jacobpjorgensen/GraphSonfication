@@ -19,6 +19,14 @@ let screenSize: CGRect = UIScreen.mainScreen().bounds
 
 class ViewController: UIViewController {
     
+
+    @IBOutlet weak var titleLabel: UILabel!
+    @IBOutlet weak var currentPrice: UILabel!
+    @IBOutlet weak var percentChange: UILabel!
+    @IBOutlet weak var domain: UILabel!
+    @IBOutlet weak var highPrice: UILabel!
+    @IBOutlet weak var lowPrice: UILabel!
+    
     //Array of structs of date and price for each data point
     // These can eventually be dynamically taken from an API
     var lineData = [point(time: "May 23rd", price: 50.03), point(time: "May 24th", price: 51.59), point(time: "May 25th", price: 52.12), point(time: "May 26th", price: 51.89), point(time: "May 27th", price: 52.32), point(time: "May 31st", price: 53.00), point(time: "June 1st", price: 52.85), point(time: "June 2nd",  price: 52.48), point(time: "June 3rd",  price: 51.79), point(time: "June 6th", price: 52.13), point(time: "June 7th", price: 52.10), point(time: "June 8th", price: 52.04), point(time: "June 9th", price: 51.62), point(time: "June 10th", price: 51.48), point(time: "June 13th", price: 50.14), point(time: "June 14th", price: 49.83), point(time: "June 15th",  price: 49.69), point(time: "June 16th",  price: 50.39), point(time: "June 17th", price: 50.13), point(time: "June 20th", price: 50.07), point(time: "June 21st", price: 51.19), point(time: "June 22nd", price: 51.21)]
@@ -33,6 +41,19 @@ class ViewController: UIViewController {
         "high_price" : "",
         "low_price" : ""
     ]
+    
+    var percentChangeValue: Double {
+        if (lineData.count-1) >= 0 {
+            let lastPrice = lineData.last?.price
+            let secondToLastPrice = lineData[lineData.count-2].price
+            let changeDifference = lastPrice! - secondToLastPrice
+            let changePercent = (changeDifference/secondToLastPrice)*100
+            return round(100 * changePercent) / 100
+        }
+        else {
+            return 0
+        }
+    }
     
     var speakText: String = ""
     var xLocation: Double = 0
@@ -88,7 +109,18 @@ class ViewController: UIViewController {
 //        // Get API data
 //        let stocksAPI = StocksAPI()
 //        stocksAPI.openURLSession()
+        
+        titleLabel.text = "MSFT"
+        titleLabel.accessibilityLabel = "Microsoft Stock"
+        currentPrice.accessibilityLabel = "$" + String(round(100 * lineData.last!.price) / 100) + ", current price"
+        percentChange.accessibilityLabel = String(percentChangeValue) + "% change"
+        domain.accessibilityLabel = String(lineData.first!.time) + " to " + String(lineData.last!.time)
+        highPrice.accessibilityLabel = String(sonifyGraph.getMax(lineData)) + ", high price"
+        lowPrice.accessibilityLabel = String(sonifyGraph.getMin(lineData)) + ", low price"
+        
+//        self.view.isAccessibilityElement = true
     }
+
     
     func detectPan(sender: UIPanGestureRecognizer) {
         // Takes x value from pan and converts it to the frequnecy associated with the data's y value
@@ -195,7 +227,7 @@ class ViewController: UIViewController {
     
     func detectThreeFingerTap(sender:UITapGestureRecognizer) {
         if(sender.state == .Ended) {
-            speakText = textStrings["time_span"]! + ". Price range " + textStrings["price_range"]!
+            speakText = "Microsoft Stock " + textStrings["time_span"]! + ". Price range " + textStrings["price_range"]!
             TextToSpeech().speakText(speakText)
         }
     }
